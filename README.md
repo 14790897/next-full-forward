@@ -1,6 +1,6 @@
 # full-forward-proxy
 
-本项目尽全力将网页上的内容全部通过 CF Worker 进行代理, 目前发现对谷歌，油管不适配
+本项目尽全力将网页上的内容全部通过 next的路由 进行代理, 目前发现对谷歌，油管不适配
 
 ## 使用方法
 
@@ -9,17 +9,12 @@
 
 ## 自己搭建步骤
 
+
 1. 克隆仓库并切换到仓库目录
-2. 部署到 cf （使用 wrangler）
-
+2. 开发
    ```sh
-   npm install -g wrangler
-   wrangler login
-   npm install
-   wrangler deploy
-   ```
-
-3. 在 cf 上配置自定义域名（可选）
+	npm run dev
+	```
 
 ## 功能
 
