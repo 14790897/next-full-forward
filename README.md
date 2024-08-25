@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# full-forward-proxy
 
-## Getting Started
+本项目尽全力将网页上的内容全部通过 CF Worker 进行代理, 目前发现对谷歌，油管不适配
 
-First, run the development server:
+## 使用方法
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. 访问域名主页，如我部署的https://forward.paperai.life ，自动安装service worker
+2. 在任意 url 前面加上 https://你的域名/proxy/ 例如 https://forward.paperai.life/proxy/https://github.com/14790897
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 自己搭建步骤
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. 克隆仓库并切换到仓库目录
+2. 部署到 cf （使用 wrangler）
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+   ```sh
+   npm install -g wrangler
+   wrangler login
+   npm install
+   wrangler deploy
+   ```
 
-## Learn More
+3. 在 cf 上配置自定义域名（可选）
 
-To learn more about Next.js, take a look at the following resources:
+## 功能
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 代理功能：拦截并通过 Cloudflare Worker 转发到目标网站的请求。
+- 自动 URL 重写：修改 HTML 内容中的相对 URL，使它们通过代理加载。
+- Cookie 记录：在 Cookie 中存储当前访问的目标网站，以便处理后续特殊地直接对根路径请求时不需要再次提供完整的 URL。
+- service worker: 拦截非代理网站的请求，使得它们也走代理
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 体验网址
 
-## Deploy on Vercel
+https://forward.paperai.life
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 演示视频
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+https://file.paperai.life/%E6%97%A0%E4%BB%A3%E7%90%86%E5%9B%BD%E5%86%85%E8%AE%BF%E9%97%AEpornhub%E6%96%B9%E6%B3%95.mp4
+
+## 参考项目: https://github.com/gaboolic/cloudflare-reverse-proxy
