@@ -19,7 +19,7 @@ self.addEventListener('fetch', (event) => {
 		event.respondWith(fetch(event.request)); // 直接传递给worker
 	}
 	// 如果请求的域名不以domain开头，说明他请求了外部的服务那个服务是一个完整的链接，则加上前缀，使得可以代理（chatgpt说对其它域名的请求，无法代理，只能试试在返回页面的时候修改全部url）
-	else if (!requestUrl.href.startsWith(domain) && !requestUrl.href.startsWith('chrome-extension')) {
+	else if (!requestUrl.href.startsWith(domain) && !(requestUrl.protocol === 'chrome-extension:' || requestUrl.protocol === 'about:')) {
 		// 检查是否为 script 文件
 		if (requestUrl.pathname.endsWith('.js') || requestUrl.pathname.endsWith('.mjs') || requestUrl.pathname.endsWith('.css')) {
 			console.log('Skipping proxy for script file:', requestUrl.href);
@@ -32,9 +32,9 @@ self.addEventListener('fetch', (event) => {
 		const encodedUrl = encodeURIComponent(requestUrl.href);
 		const modifiedUrl = `${prefix}${encodedUrl}`;
 		console.log(
-			'URL does not start with prefix. Adding prefix and redirecting...,modifiedUrl:',
+			'URl未被代理,已修改：modifiedUrl:',
 			modifiedUrl,
-			'originRequestUrl:',
+			'原始originRequestUrl:',
 			requestUrl.href
 		);
 
@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
 		// event.respondWith(fetch(modifiedRequest));
 		return;
 	} else {
-		console.log('Passing through unmodified request. 未更改，requestUrl.href：', requestUrl.href);
+		console.log('未代理：', requestUrl.href);
 		event.respondWith(fetch(event.request));
 	}
 });
