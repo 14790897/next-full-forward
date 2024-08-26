@@ -7,16 +7,19 @@ export default function HomePage() {
   const [history, setHistory] = useLocalStorage<string[]>("history", []);
 
   // 处理表单提交
-  const handleSubmit = (event: any) => {
+  const handleSubmit = (event: any, urlToNavigate?: string) => {
     event.preventDefault();
-    const proxyUrl = encodeURIComponent(url);
+
+    const targetUrl = urlToNavigate || url;
 
     // 更新历史记录，确保相同的网址不会重复
-    let updatedHistory = history?.filter((item) => item !== url) || [];
-    updatedHistory = [url, ...updatedHistory]; // 将新网址插入到列表顶部
+    let updatedHistory = history?.filter((item) => item !== targetUrl) || [];
+    updatedHistory = [targetUrl, ...updatedHistory]; // 将新网址插入到列表顶部
 
     setHistory(updatedHistory);
+    const proxyUrl = encodeURIComponent(targetUrl);
 
+    // 跳转到代理的 URL
     window.location.href = proxyUrl;
   };
 
@@ -49,7 +52,15 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold text-gray-700">访问历史：</h2>
           <ul className="list-disc pl-8 text-gray-600">
             {history.map((item, index) => (
-              <li key={index}>{item}</li>
+              <li key={index}>
+                <a
+                  href="#"
+                  onClick={(e) => handleSubmit(e, item)}
+                  className="text-blue-500 hover:underline"
+                >
+                  {item}
+                </a>
+              </li>
             ))}
           </ul>
         </div>
