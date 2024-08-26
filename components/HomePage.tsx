@@ -1,21 +1,23 @@
-'use client'
+"use client";
 import { useState } from "react";
 import { useLocalStorage } from "react-use";
 
 export default function HomePage() {
   const [url, setUrl] = useState("https://github.com/14790897");
-const [history, setHistory] = useLocalStorage<string[]>("history", []);
+  const [history, setHistory] = useLocalStorage<string[]>("history", []);
 
   // 处理表单提交
-  const handleSubmit = (event:any) => {
+  const handleSubmit = (event: any) => {
     event.preventDefault();
     const proxyUrl = encodeURIComponent(url);
-    // 如果这里的目的是让用户访问输入的 URL，那么不应该对整个 URL 进行编码。
-    window.location.href = proxyUrl; // 使用原始 URL 而不是编码后的 URL
 
-    // 更新历史记录并保存到 localStorage
-    const updatedHistory = [...(history || []), url]; // 确保 history 是数组
+    // 更新历史记录，确保相同的网址不会重复
+    let updatedHistory = history?.filter((item) => item !== url) || [];
+    updatedHistory = [url, ...updatedHistory]; // 将新网址插入到列表顶部
+
     setHistory(updatedHistory);
+
+    window.location.href = proxyUrl;
   };
 
   return (
