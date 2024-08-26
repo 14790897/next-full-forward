@@ -19,7 +19,8 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     let actualUrlStr: string;
 
     if (!url.pathname.startsWith("/proxy/")) {
-      // 从Cookie中读取之前访问的网站
+		// 从Cookie中读取之前访问的网站
+		console.log('未找到proxy，进入cookie')
       const cookie = request.headers.get("cookie");
       if (cookie) {
         const cookieObj: Record<string, string> = Object.fromEntries(
@@ -90,7 +91,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       );
     }
     const clonedResponse = response.clone();
-    console.log("clonedResponse:", clonedResponse);
+    // console.log("clonedResponse:", clonedResponse);
 
     const modifiedResponse = new NextResponse(response.body, {
       headers: response.headers,
@@ -100,7 +101,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       actualUrl.origin
     )}; Path=/; Secure`;
     modifiedResponse.headers.append("Set-Cookie", currentSiteCookie);
-    console.log("modifiedResponse.body:", modifiedResponse.body);
+    // console.log("modifiedResponse.body:", modifiedResponse.body);//这里他直接锁住了看不到
     return modifiedResponse;
   } catch (e) {
     console.error("Error handling request:", e);
