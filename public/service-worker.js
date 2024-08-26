@@ -11,9 +11,9 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", async (event) => {
-  const userRequestUrl = new URL(event.request.url); // 请求的域名
-  const myWebsiteUrl = new URL(self.location.href); // 当前所在的网站的域名的url对象
-  const myWebsiteDomain = myWebsiteUrl.origin; // 当前所在的网站的域名
+  const userRequestUrl = new URL(event.request.url); // 用户请求的域名
+  const myWebsiteUrl = new URL(self.location.href); // 我的网站的域名的url对象
+  const myWebsiteDomain = myWebsiteUrl.origin; // 我的网站的域名
   const prefix = `${myWebsiteDomain}/`;
   //正常情况下请求的链接应该是我的域名加上需要代理的完整的网址路径，如果请求的是我的代理网站的域名加上不带https域名的路径，说明需要使用上一次请求获得到的需要代理的域名加上去（请chatgpt帮我完成这部分）
   // 假设用来存储上一次请求的完整域名的变量
