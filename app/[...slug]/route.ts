@@ -75,7 +75,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     const modifiedRequestInit: RequestInit = {
       headers: {
         ...request.headers,
-        "Accept-Encoding": " deflate, br, zstd", // 禁用 gzip, br 等压缩方式
+        // "Accept-Encoding": " deflate, br, zstd", // 禁用 gzip, br 等压缩方式
       },
       method: request.method,
       body: request.method === "POST" ? await request.text() : null,
@@ -87,8 +87,6 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     if (response.headers.get("Content-Type")?.includes("text/html")) {
       response = await updateRelativeUrls(response, baseUrl, prefix);
     }
-    const clonedResponse = response.clone();
-    // console.log("clonedResponse:", clonedResponse);
 
     const modifiedResponse = new NextResponse(response.body, {
       headers: response.headers,

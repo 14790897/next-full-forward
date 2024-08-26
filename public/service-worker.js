@@ -24,7 +24,8 @@ self.addEventListener('fetch', (event) => {
     !(
       requestUrl.protocol === "chrome-extension:" ||
       requestUrl.protocol === "about:" ||
-      requestUrl.href.includes("clarity")
+      requestUrl.href.includes("clarity") ||
+      requestUrl.href.includes("analytics")
     )
   ) {
     // 检查是否为 script 文件

@@ -5,12 +5,51 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
+import type { Viewport } from "next";
 
-export const metadata: Metadata = {
-  title: "Next Full Proxy",
-  description: "全代理网页流量，轻松越过防火墙",
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  // Also supported by less commonly used
+  // interactiveWidget: 'resizes-visual',
 };
 
+export const metadata: Metadata = {
+  manifest: "/manifest.json",
+  title: "Next Full Proxy",
+  description: "全代理网页流量，轻松越过防火墙",
+  keywords: ["pornhub", "github", "wikipedia", "proxy", "代理", "免费", "free"],
+  authors: [{ name: "liuweiqing", url: "https://github.com/14790897" }],
+  creator: "liuweiqing",
+  publisher: "liuweiqing",
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-US": "/en-US",
+      "de-DE": "/de-DE",
+    },
+  },
+  openGraph: {
+    images:
+      "https://file.paperai.life/2024/02/540f3476ef43c831934ce0359c367acd.png",
+  },
+  twitter: {
+    card: "summary",
+    title: "AI write",
+    description: "The fastest way to write paper",
+    creator: "@hahfrank",
+    images: [
+      "https://file.paperai.life/2024/02/540f3476ef43c831934ce0359c367acd.png",
+    ],
+  },
+
+  icons: [
+    { rel: "apple-touch-icon", url: "apple-touch-icon.png" },
+    { rel: "icon", url: "favicon-32x32.png" },
+  ],
+};
 export default function RootLayout({
   children,
 }: Readonly<{
