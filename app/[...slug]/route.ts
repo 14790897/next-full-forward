@@ -3,12 +3,12 @@ export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  console.log("GET request received in route:", request.url);
+  console.log("GET request");
   return handleRequest(request);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  console.log("POST request received in route:", request.url);
+  console.log("POST request");
   return handleRequest(request);
 }
 
@@ -22,7 +22,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       !(url.pathname.startsWith("/http") || url.pathname.startsWith("/https"))
     ) {
       // 从Cookie中读取之前访问的网站
-      console.log(`路径未找到完整链接，进入cookie,pathname：${url.pathname}`);
+      console.log(`路径未找到完整链接，进入cookie`);
       const cookie = request.headers.get("cookie");
       if (cookie) {
         const cookieObj: Record<string, string> = Object.fromEntries(
@@ -43,6 +43,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
           const redirectUrl = `${prefix}${encodeURIComponent(
             actualUrl.toString()
           )}`;
+          console.log('redirectUrl in cookie:', redirectUrl);
           return NextResponse.redirect(redirectUrl, 301);
         } else {
           return new NextResponse(
