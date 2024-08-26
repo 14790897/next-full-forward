@@ -15,7 +15,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 async function handleRequest(request: NextRequest): Promise<NextResponse> {
   try {
     const url = new URL(request.url);
-
+    const prefix = `${url.origin}/`;
     let actualUrlStr: string;
 
     if (
@@ -40,7 +40,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
             url.hash;
           console.log("Actual URL from cookie:", actualUrlStr);
           const actualUrl = new URL(actualUrlStr);
-          const redirectUrl = `${url.origin}/${encodeURIComponent(
+          const redirectUrl = `${prefix}${encodeURIComponent(
             actualUrl.toString()
           )}`;
           return NextResponse.redirect(redirectUrl, 301);
@@ -82,9 +82,9 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     };
 
     let response = await fetch(actualUrl.toString(), modifiedRequestInit);
-    const baseUrl = `${url.origin}/${encodeURIComponent(actualUrl.origin)}`;
+    const baseUrl = `${prefix}${encodeURIComponent(actualUrl.origin)}`;
     if (response.headers.get("Content-Type")?.includes("text/html")) {
-      response = await updateRelativeUrls(response, baseUrl, `${url.origin}/`);
+      response = await updateRelativeUrls(response, baseUrl, prefix);
     }
     const clonedResponse = response.clone();
     // console.log("clonedResponse:", clonedResponse);
