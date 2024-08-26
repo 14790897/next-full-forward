@@ -7,7 +7,7 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "next full proxy",
+  title: "Next Full Proxy",
   description: "全代理网页流量，轻松越过防火墙",
 };
 
