@@ -17,8 +17,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // 参考 https://nextjs.org/docs/app/building-your-application/optimizing/scripts
     <html lang="en">
       <body className={inter.className}>{children}</body>
+      <Script id="service-worker">{`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                  // 注册成功
+                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                  // 注册失败 :(
+                  console.log('ServiceWorker registration failed: ', err);
+                });
+              });
+            }
+          `}</Script>
       {/* 谷歌分析 */}
       <GoogleAnalytics gaId="G-N4JC2V0JWY" />
       {/* 微软 clarify */}
