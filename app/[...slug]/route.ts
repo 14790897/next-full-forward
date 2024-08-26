@@ -14,12 +14,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 async function handleRequest(request: NextRequest): Promise<NextResponse> {
   try {
-    const url = new URL(request.url);
-    const prefix = `${url.origin}/`;
+    const requestUrlObject = new URL(request.url);
+    const prefix = `${requestUrlObject.origin}/`;
     let actualUrlStr: string;
 
     if (
-      !(url.pathname.startsWith("/http") || url.pathname.startsWith("/https"))
+      !(requestUrlObject.pathname.startsWith("/http") || requestUrlObject.pathname.startsWith("/https"))
     ) {
       // 从Cookie中读取之前访问的网站
       console.log(`路径未找到完整链接，进入cookie`);
@@ -35,13 +35,13 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
           // 解码 URL
           actualUrlStr =
             decodeURIComponent(cookieObj.current_site) +
-            url.pathname +
-            url.search +
-            url.hash;
+            requestUrlObject.pathname +
+            requestUrlObject.search +
+            requestUrlObject.hash;
           console.log("Actual URL from cookie:", actualUrlStr);
-          const actualUrl = new URL(actualUrlStr);
+          const actualUrlObject = new URL(actualUrlStr);
           const redirectUrl = `${prefix}${encodeURIComponent(
-            actualUrl.toString()
+            actualUrlObject.toString()
           )}`;
           console.log("redirectUrl in cookie:", redirectUrl);
           return NextResponse.redirect(redirectUrl, 301);
@@ -66,15 +66,17 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     } else {
       // 解码 URL
       actualUrlStr = decodeURIComponent(
-        url.pathname.replace("/", "") + url.search + url.hash
+        requestUrlObject.pathname.replace("/", "") + requestUrlObject.search + requestUrlObject.hash
       );
       console.log("Actual URL:", actualUrlStr);
     }
 
-    const actualUrl = new URL(actualUrlStr);
+    const actualUrlObject = new URL(actualUrlStr);
     const modifiedRequestInit: RequestInit = {
       headers: {
         ...request.headers,
+        Referer: actualUrlObject.origin, // 修改为你注册的域名
+        Origin: actualUrlObject.origin, // 确保 Origin 也是正确的
         // "Accept-Encoding": "gzip, deflate, br", //  gzip...
       },
       method: request.method,
@@ -82,7 +84,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       redirect: "manual", // 手动处理重定向
     };
 
-    let response = await fetch(actualUrl.toString(), modifiedRequestInit);
+    let response = await fetch(actualUrlObject.toString(), modifiedRequestInit);
 
     // 处理重定向响应
     if (
@@ -91,14 +93,14 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       response.headers.get("Location")
     ) {
       const location = response.headers.get("Location")!;
-      const redirectUrl = new URL(location, actualUrl).toString();
+      const redirectUrl = new URL(location, actualUrlObject).toString();
       return NextResponse.redirect(
         `${prefix}${encodeURIComponent(redirectUrl)}`,
         response.status
       );
     }
 
-    const baseUrl = `${prefix}${encodeURIComponent(actualUrl.origin)}`;
+    const baseUrl = `${prefix}${encodeURIComponent(actualUrlObject.origin)}`;
     if (response.headers.get("Content-Type")?.includes("text/html")) {
       response = await updateRelativeUrls(response, baseUrl, prefix);
     }
@@ -108,7 +110,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     });
     modifiedResponse.headers.set("Access-Control-Allow-Origin", "*");
     const currentSiteCookie = `current_site=${encodeURIComponent(
-      actualUrl.origin
+      actualUrlObject.origin
     )}; Path=/; Secure`;
     modifiedResponse.headers.append("Set-Cookie", currentSiteCookie);
     // console.log("modifiedResponse.body:", modifiedResponse.body);//这里他直接锁住了看不到
