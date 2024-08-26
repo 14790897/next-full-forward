@@ -59,7 +59,7 @@ self.addEventListener("fetch", (event) => {
       method: event.request.method,
       headers: event.request.headers,
       body: event.request.body,
-      mode: event.request.mode,
+      mode: "same-origin",
       credentials: event.request.credentials,
       cache: event.request.cache,
       redirect: event.request.redirect,
@@ -73,11 +73,11 @@ self.addEventListener("fetch", (event) => {
     }
 
     // 这里重定向到新的 URL
-    const redirectUrl = new URL(modifiedUrl);
-    const redirectResponse = Response.redirect(redirectUrl, 302);
-    // const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
-    event.respondWith(redirectResponse); //这里不知道为什么不用原来的fetch了？
-    // event.respondWith(fetch(modifiedRequest));
+    // const redirectUrl = new URL(modifiedUrl);
+    // const redirectResponse = Response.redirect(redirectUrl, 302);
+    // event.respondWith(redirectResponse); //这里不知道为什么不用原来的fetch了？
+    const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
+    event.respondWith(fetch(modifiedRequest));
     return;
   } else {
     console.log("未代理：", requestUrl.href);
