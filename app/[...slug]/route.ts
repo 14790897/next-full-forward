@@ -99,12 +99,15 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     // console.log("modifiedResponse.body:", modifiedResponse.body);//这里他直接锁住了看不到
     return modifiedResponse;
   } catch (e) {
-    console.error("Error handling request:", e);
     let pathname = new URL(request.url).pathname;
-    return new NextResponse(`"${pathname}" not found`, {
-      status: 404,
-      statusText: "Not Found",
-    });
+    return new NextResponse(
+      `"${pathname}" not found,
+      Error handling request:, ${e}`,
+      {
+        status: 404,
+        statusText: "Not Found",
+      }
+    );
   }
 }
 
