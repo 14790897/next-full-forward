@@ -19,7 +19,10 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     let actualUrlStr: string;
 
     if (
-      !(requestUrlObject.pathname.startsWith("/http") || requestUrlObject.pathname.startsWith("/https"))
+      !(
+        requestUrlObject.pathname.startsWith("/http") ||
+        requestUrlObject.pathname.startsWith("/https")
+      )
     ) {
       // 从Cookie中读取之前访问的网站
       console.log(`路径未找到完整链接，进入cookie`);
@@ -66,7 +69,9 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     } else {
       // 解码 URL
       actualUrlStr = decodeURIComponent(
-        requestUrlObject.pathname.replace("/", "") + requestUrlObject.search + requestUrlObject.hash
+        requestUrlObject.pathname.replace("/", "") +
+          requestUrlObject.search +
+          requestUrlObject.hash
       );
       console.log("Actual URL:", actualUrlStr);
     }
@@ -118,7 +123,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
   } catch (e) {
     let pathname = new URL(request.url).pathname;
     return new NextResponse(
-      `"${pathname}" not found,
+      `
       Error handling request:, ${e}`,
       {
         status: 404,
