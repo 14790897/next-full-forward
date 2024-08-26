@@ -43,7 +43,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
           const redirectUrl = `${prefix}${encodeURIComponent(
             actualUrl.toString()
           )}`;
-          console.log('redirectUrl in cookie:', redirectUrl);
+          console.log("redirectUrl in cookie:", redirectUrl);
           return NextResponse.redirect(redirectUrl, 301);
         } else {
           return new NextResponse(
@@ -75,14 +75,29 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     const modifiedRequestInit: RequestInit = {
       headers: {
         ...request.headers,
-        // "Accept-Encoding": " deflate, br, zstd", // 禁用 gzip, br 等压缩方式
+        // "Accept-Encoding": "gzip, deflate, br", //  gzip...
       },
       method: request.method,
       body: request.method === "POST" ? await request.text() : null,
-      redirect: "follow",
+      redirect: "manual", // 手动处理重定向
     };
 
     let response = await fetch(actualUrl.toString(), modifiedRequestInit);
+
+    // 处理重定向响应
+    if (
+      response.status >= 300 &&
+      response.status < 400 &&
+      response.headers.get("Location")
+    ) {
+      const location = response.headers.get("Location")!;
+      const redirectUrl = new URL(location, actualUrl).toString();
+      return NextResponse.redirect(
+        `${prefix}${encodeURIComponent(redirectUrl)}`,
+        response.status
+      );
+    }
+
     const baseUrl = `${prefix}${encodeURIComponent(actualUrl.origin)}`;
     if (response.headers.get("Content-Type")?.includes("text/html")) {
       response = await updateRelativeUrls(response, baseUrl, prefix);
