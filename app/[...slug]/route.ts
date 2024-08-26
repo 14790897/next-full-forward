@@ -3,12 +3,12 @@ export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  console.log("GET request received in /proxy route:", request.url);
+  console.log("GET request received in route:", request.url);
   return handleRequest(request);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  console.log("POST request received in /proxy route:", request.url);
+  console.log("POST request received in route:", request.url);
   return handleRequest(request);
 }
 
@@ -18,9 +18,11 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
 
     let actualUrlStr: string;
 
-    if (!url.pathname.startsWith("/proxy/")) {
-		// 从Cookie中读取之前访问的网站
-		console.log('未找到proxy，进入cookie')
+    if (
+      !(url.pathname.startsWith("/http") || url.pathname.startsWith("/https"))
+    ) {
+      // 从Cookie中读取之前访问的网站
+      console.log(`路径未找到完整链接，进入cookie,pathname：${url.pathname}`);
       const cookie = request.headers.get("cookie");
       if (cookie) {
         const cookieObj: Record<string, string> = Object.fromEntries(
@@ -38,7 +40,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
             url.hash;
           console.log("Actual URL from cookie:", actualUrlStr);
           const actualUrl = new URL(actualUrlStr);
-          const redirectUrl = `${url.origin}/proxy/${encodeURIComponent(
+          const redirectUrl = `${url.origin}/${encodeURIComponent(
             actualUrl.toString()
           )}`;
           return NextResponse.redirect(redirectUrl, 301);
@@ -63,7 +65,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     } else {
       // 解码 URL
       actualUrlStr = decodeURIComponent(
-        url.pathname.replace("/proxy/", "") + url.search + url.hash
+        url.pathname.replace("/", "") + url.search + url.hash
       );
       console.log("Actual URL:", actualUrlStr);
     }
@@ -80,15 +82,9 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     };
 
     let response = await fetch(actualUrl.toString(), modifiedRequestInit);
-    const baseUrl = `${url.origin}/proxy/${encodeURIComponent(
-      actualUrl.origin
-    )}`;
+    const baseUrl = `${url.origin}/${encodeURIComponent(actualUrl.origin)}`;
     if (response.headers.get("Content-Type")?.includes("text/html")) {
-      response = await updateRelativeUrls(
-        response,
-        baseUrl,
-        `${url.origin}/proxy/`
-      );
+      response = await updateRelativeUrls(response, baseUrl, `${url.origin}/`);
     }
     const clonedResponse = response.clone();
     // console.log("clonedResponse:", clonedResponse);
