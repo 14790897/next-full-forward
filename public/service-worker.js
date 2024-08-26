@@ -48,7 +48,7 @@ self.addEventListener("fetch", async (event) => {
       return fetch(modifiedRequest);
     } else {
       console.log("No last requested domain available to reconstruct the URL.");
-      event.respondWith(fetch(event.request));
+      //   return fetch(event.request);
       return;
     }
   }
@@ -72,7 +72,7 @@ self.addEventListener("fetch", async (event) => {
     ) {
       console.log("Skipping proxy for script file:", userRequestUrl.href);
       // 直接传递请求，不进行代理
-      event.respondWith(fetch(event.request));
+      //   return fetch(event.request);
       return;
     }
 
