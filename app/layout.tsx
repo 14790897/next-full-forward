@@ -73,16 +73,16 @@ export default function RootLayout({
             }
           `}</Script>
       {/* 谷歌分析 */}
-      <GoogleAnalytics gaId="G-N4JC2V0JWY" />
+      {/* <GoogleAnalytics gaId="G-N4JC2V0JWY" /> */}
       {/* 微软 clarify */}
-      <Script id="clarify">
+      {/* <Script id="clarify">
         {`
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "nt4hmun44h");`}
-      </Script>
+      </Script> */}
     </html>
   );
 }
