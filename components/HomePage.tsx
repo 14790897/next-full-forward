@@ -8,7 +8,7 @@ export default function HomePage() {
 		event.preventDefault();
 		// 使用 encodeURIComponent 对 URL 进行编码
 		const encodedUrl = encodeURIComponent(url);
-		const proxyUrl = `/proxy/${encodedUrl}`;
+		const proxyUrl = `${encodedUrl}`;
 		window.location.href = proxyUrl;
 	};
 

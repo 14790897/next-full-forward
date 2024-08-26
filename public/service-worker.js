@@ -13,13 +13,13 @@ self.addEventListener('fetch', (event) => {
 	const requestUrl = new URL(event.request.url); // 请求的域名
 	const originUrl = new URL(self.location.href); // 当前所在的网站的域名的url对象
 	const domain = originUrl.origin; // 当前所在的网站的域名
-	const prefix = `${domain}/proxy/`;
+	const prefix = `${domain}`;
 
 	if (requestUrl.pathname === '/' || requestUrl.pathname === '/service-worker.js') {
 		event.respondWith(fetch(event.request)); // 直接传递给worker
 	}
 	// 如果请求的域名不以domain开头，说明他请求了外部的服务那个服务是一个完整的链接，则加上前缀，使得可以代理（chatgpt说对其它域名的请求，无法代理，只能试试在返回页面的时候修改全部url）
-	else if (!requestUrl.href.startsWith(domain) && !(requestUrl.protocol === 'chrome-extension:' || requestUrl.protocol === 'about:')) {
+	else if (!requestUrl.href.startsWith(prefix) && !(requestUrl.protocol === 'chrome-extension:' || requestUrl.protocol === 'about:')) {
 		// 检查是否为 script 文件
 		if (requestUrl.pathname.endsWith('.js') || requestUrl.pathname.endsWith('.mjs') || requestUrl.pathname.endsWith('.css')) {
 			console.log('Skipping proxy for script file:', requestUrl.href);
