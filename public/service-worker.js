@@ -11,22 +11,22 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", async (event) => {
-  const userRequestUrl = new URL(event.request.url); // 用户请求的域名
-  const myWebsiteUrl = new URL(self.location.href); // 我的网站的域名的url对象
-  const myWebsiteDomain = myWebsiteUrl.origin; // 我的网站的域名
+  const userRequestUrlObject = new URL(event.request.url); // 用户请求的完整链接
+  const myWebsiteUrlObject = new URL(self.location.href); // 我的网站的域名的url对象
+  const myWebsiteDomain = myWebsiteUrlObject.origin; // 我的网站的域名
   const prefix = `${myWebsiteDomain}/`;
   //正常情况下请求的链接应该是我的域名加上需要代理的完整的网址路径，如果请求的是我的代理网站的域名加上不带https域名的路径，说明需要使用上一次请求获得到的需要代理的域名加上去（请chatgpt帮我完成这部分）
   // 假设用来存储上一次请求的完整域名的变量
   // 从 Cache 中获取 lastRequestedDomain
-  const cache = await caches.open("domain-cache");
+  const cache = await caches.open("full-proxy-cache");
   const cachedResponse = await cache.match("lastRequestedDomain");
   let lastRequestedDomain = cachedResponse ? await cachedResponse.text() : null;
 
   // 如果请求的路径不包含完整的 URL（不带 https 前缀）
-  if (!userRequestUrl.pathname.startsWith("http")) {
+  if (!userRequestUrlObject.pathname.startsWith("http")) {
     // 检查是否有之前存储的域名信息
     if (lastRequestedDomain) {
-      const reconstructedTrueUrl = `${lastRequestedDomain}${userRequestUrl.pathname}${userRequestUrl.search}`;
+      const reconstructedTrueUrl = `${lastRequestedDomain}${userRequestUrlObject.pathname}${userRequestUrlObject.search}`;
       console.log(
         "Reconstructed URL using last requested domain:",
         reconstructedTrueUrl
@@ -54,11 +54,11 @@ self.addEventListener("fetch", async (event) => {
   }
   // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理
   if (
-    !userRequestUrl.href.startsWith(myWebsiteDomain) &&
+    !userRequestUrlObject.href.startsWith(myWebsiteDomain) &&
     !(
       (
-        userRequestUrl.protocol === "chrome-extension:" ||
-        userRequestUrl.protocol === "about:"
+        userRequestUrlObject.protocol === "chrome-extension:" ||
+        userRequestUrlObject.protocol === "about:"
       )
       //   requestUrl.href.includes("clarity") ||
       //   requestUrl.href.includes("analytics")
@@ -66,28 +66,35 @@ self.addEventListener("fetch", async (event) => {
   ) {
     // 检查是否为 script 文件
     if (
-      userRequestUrl.pathname.endsWith(".js") ||
-      userRequestUrl.pathname.endsWith(".mjs") ||
-      userRequestUrl.pathname.endsWith(".css")
+      userRequestUrlObject.pathname.endsWith(".js") ||
+      userRequestUrlObject.pathname.endsWith(".mjs") ||
+      userRequestUrlObject.pathname.endsWith(".css")
     ) {
-      console.log("Skipping proxy for script file:", userRequestUrl.href);
+      console.log("Skipping proxy for script file:", userRequestUrlObject.href);
       // 直接传递请求，不进行代理
       //   return fetch(event.request);
       return;
     }
 
     // 对 URL 进行编码，避免特殊字符引发的问题
-    const encodedUrl = encodeURIComponent(userRequestUrl.href);
-    const modifiedUrl = `${prefix}${encodedUrl}`;
+    const modifiedUrl = `${prefix}${encodeURIComponent(userRequestUrlObject.href)}`;
     console.log(
       "URl未被代理,已修改：modifiedUrl:",
       modifiedUrl,
       "原始originRequestUrl:",
-      userRequestUrl.href
+      userRequestUrlObject.href
     );
-
-    const cache = await caches.open("domain-cache");
-    await cache.put("lastRequestedDomain", new Response(userRequestUrl.origin));
+	const actualUrlStr = decodeURIComponent(
+    userRequestUrlObject.pathname.replace("/", "") +
+      userRequestUrlObject.search +
+      userRequestUrlObject.hash
+  );
+	const actualUrlObject = new URL(actualUrlStr);
+    const cache = await caches.open("full-proxy-cache");
+    await cache.put(
+      "lastRequestedDomain",
+      new Response(actualUrlObject.pathname)
+    );
     const modifiedRequestInit = {
       method: event.request.method,
       headers: event.request.headers,
@@ -110,7 +117,7 @@ self.addEventListener("fetch", async (event) => {
     const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
     return fetch(modifiedRequest);
   } else {
-    console.log("未代理：", userRequestUrl.href);
+    console.log("未代理：", userRequestUrlObject.href);
     return fetch(event.request);
   }
 });
