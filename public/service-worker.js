@@ -18,12 +18,9 @@ self.addEventListener("fetch", async (event) => {
   //正常情况下请求的链接应该是我的域名加上需要代理的完整的网址路径，如果请求的是我的代理网站的域名加上不带https域名的路径，说明需要使用上一次请求获得到的需要代理的域名加上去（请chatgpt帮我完成这部分）
   // 假设用来存储上一次请求的完整域名的变量
   // 从 Cache 中获取 lastRequestedDomain
-  let lastRequestedDomain = await caches
-    .open("domain-cache")
-    .then(async (cache) => {
-      const cachedResponse = await cache.match("lastRequestedDomain");
-      return cachedResponse ? cachedResponse.text() : null;
-    });
+  const cache = await caches.open("domain-cache");
+  const cachedResponse = await cache.match("lastRequestedDomain");
+  let lastRequestedDomain = cachedResponse ? await cachedResponse.text() : null;
 
   // 如果请求的路径不包含完整的 URL（不带 https 前缀）
   if (!userRequestUrl.pathname.startsWith("http")) {
@@ -34,7 +31,9 @@ self.addEventListener("fetch", async (event) => {
         "Reconstructed URL using last requested domain:",
         reconstructedTrueUrl
       );
-      const reconstructedUrl = `${prefix}${encodeURIComponent(reconstructedTrueUrl)}`;
+      const reconstructedUrl = `${prefix}${encodeURIComponent(
+        reconstructedTrueUrl
+      )}`;
       const modifiedRequest = new Request(reconstructedUrl, {
         method: event.request.method,
         headers: event.request.headers,
@@ -46,8 +45,7 @@ self.addEventListener("fetch", async (event) => {
         referrer: event.request.referrer,
         integrity: event.request.integrity,
       });
-      event.respondWith(fetch(modifiedRequest));
-      return;
+      return fetch(modifiedRequest);
     } else {
       console.log("No last requested domain available to reconstruct the URL.");
       event.respondWith(fetch(event.request));
@@ -88,6 +86,8 @@ self.addEventListener("fetch", async (event) => {
       userRequestUrl.href
     );
 
+    const cache = await caches.open("domain-cache");
+    await cache.put("lastRequestedDomain", new Response(userRequestUrl.origin));
     const modifiedRequestInit = {
       method: event.request.method,
       headers: event.request.headers,
@@ -98,27 +98,19 @@ self.addEventListener("fetch", async (event) => {
       redirect: event.request.redirect,
       referrer: event.request.referrer,
       integrity: event.request.integrity,
+      duplex: event.request.body ? "half" : undefined, // 如果有 body，设置 duplex: 'half'
     };
-
-    // 如果有 body，设置 duplex: 'half'
-    if (event.request.body) {
-      modifiedRequestInit.duplex = "half";
-    }
-
     // 这里重定向到新的 URL，暂时不使用
     // const redirectUrl = new URL(modifiedUrl);
     // const redirectResponse = Response.redirect(redirectUrl, 302);
     // event.respondWith(redirectResponse);
     // 更新存储的上次请求域名
     // 将 lastRequestedDomain 存储到 Cache 中
-    await caches.open("domain-cache").then((cache) => {
-      cache.put("lastRequestedDomain", new Response(userRequestUrl.origin));
-    });
+
     const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
-    event.respondWith(fetch(modifiedRequest));
-    return;
+    return fetch(modifiedRequest);
   } else {
     console.log("未代理：", userRequestUrl.href);
-    event.respondWith(fetch(event.request));
+    return fetch(event.request);
   }
 });
