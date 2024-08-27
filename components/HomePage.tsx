@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLocalStorage } from "react-use";
+import {  encodeUrl } from "@/utils/url";
 
 export default function HomePage() {
   const [history, setHistory] = useLocalStorage<string[]>("history", []);
@@ -17,7 +18,7 @@ export default function HomePage() {
     updatedHistory = [targetUrl, ...updatedHistory]; // 将新网址插入到列表顶部
 
     setHistory(updatedHistory);
-    const proxyUrl = encodeURIComponent(targetUrl);
+    const proxyUrl = encodeUrl(targetUrl);
 
     // 跳转到代理的 URL
     window.location.href = proxyUrl;
