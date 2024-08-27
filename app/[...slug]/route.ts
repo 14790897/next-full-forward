@@ -100,6 +100,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     ) {
       const location = response.headers.get("Location")!;
       const redirectUrl = new URL(location, actualUrlObject).toString();
+      console.log('即将重定向：', redirectUrl);
       return NextResponse.redirect(
         `${prefix}${encodeUrl(redirectUrl)}`,
         response.status

@@ -18,10 +18,11 @@ self.addEventListener("fetch", async (event) => {
   if (
     !(
       webRequestUrlObject.protocol === "chrome-extension:" ||
-      webRequestUrlObject.protocol === "about:"
+      webRequestUrlObject.protocol === "about:" ||
+      webRequestUrlObject.href.includes("_next")
     )
-    //   requestUrl.href.includes("clarity") ||
-    //   requestUrl.href.includes("analytics")
+    //   webRequestUrlObject.href.includes("clarity") ||
+    //   webRequestUrlObject.href.includes("analytics")
   ) {
     const myWebsiteDomain = new URL(self.location.href).origin; // 我的网站的域名的域名（也就是我的代理网站）
     const prefix = `${myWebsiteDomain}/`;
@@ -38,16 +39,14 @@ self.addEventListener("fetch", async (event) => {
     if (!webRequestUrlObject.pathname.startsWith("/http")) {
       // 检查是否有之前存储的域名信息
       if (lastRequestedDomain) {
-        const reconstructedTrueUrl = `${decodeUrl(
-          lastRequestedDomain
-        )}${webRequestUrlObject.pathname}${webRequestUrlObject.search}`;
+        const reconstructedTrueUrl = `${decodeUrl(lastRequestedDomain)}${
+          webRequestUrlObject.pathname
+        }${webRequestUrlObject.search}`;
         console.log(
           "Reconstructed URL using last requested domain:",
           reconstructedTrueUrl
         );
-        const reconstructedUrl = `${prefix}${encodeUrl(
-          reconstructedTrueUrl
-        )}`;
+        const reconstructedUrl = `${prefix}${encodeUrl(reconstructedTrueUrl)}`;
         const modifiedRequest = new Request(reconstructedUrl, {
           method: event.request.method,
           headers: event.request.headers,
@@ -85,9 +84,7 @@ self.addEventListener("fetch", async (event) => {
         return;
       }
 
-      const modifiedUrl = `${prefix}${encodeUrl(
-        webRequestUrlObject.href
-      )}`;
+      const modifiedUrl = `${prefix}${encodeUrl(webRequestUrlObject.href)}`;
       console.log(
         "URl未被代理,已修改：modifiedUrl:",
         modifiedUrl,
