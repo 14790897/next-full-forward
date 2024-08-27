@@ -107,15 +107,15 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       //   redirectUrlObject.origin.toString() ===
       //   actualUrlObject.origin.toString()
       // ) {
-        console.log("检测到循环重定向，停止重定向处理。");
-        // 从重定向响应中删除 Location 头部，并将状态更改为 200 OK
-        const modifiedHeaders = new Headers(response.headers);
-        modifiedHeaders.delete("Location");
+      console.log("检测到循环重定向，停止重定向处理。");
+      // 从重定向响应中删除 Location 头部，并将状态更改为 200 OK
+      const modifiedHeaders = new Headers(response.headers);
+      modifiedHeaders.delete("Location");
 
-        return new NextResponse(response.body, {
-          status: 200, // 将状态码更改为 200 OK
-          headers: modifiedHeaders,
-        });
+      return new NextResponse(response.body, {
+        status: 200, // 将状态码更改为 200 OK
+        headers: modifiedHeaders,
+      });
       // } else {
       //   console.log(
       //     "redirectUrl vs actualUrl",
@@ -138,6 +138,10 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     const modifiedResponse = new NextResponse(response.body, {
       headers: response.headers,
     });
+    // 删除 CSP 相关的响应头
+    modifiedResponse.headers.delete("Content-Security-Policy");
+    modifiedResponse.headers.delete("X-Content-Security-Policy");
+    modifiedResponse.headers.delete("X-WebKit-CSP");
     modifiedResponse.headers.set("Access-Control-Allow-Origin", "*");
     const currentSiteCookie = `current_site=${encodeUrl(
       actualUrlObject.origin
