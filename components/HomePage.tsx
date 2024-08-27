@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useLocalStorage } from "react-use";
 
 export default function HomePage() {
-  const [url, setUrl] = useState("https://github.com/14790897");
   const [history, setHistory] = useLocalStorage<string[]>("history", []);
+  const [url, setUrl] = useState("https://github.com/14790897");
 
   // 处理表单提交
   const handleSubmit = (event: any, urlToNavigate?: string) => {
