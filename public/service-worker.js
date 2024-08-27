@@ -11,28 +11,30 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", async (event) => {
-  const userRequestUrlObject = new URL(event.request.url); // 用户请求的完整链接
-  const myWebsiteUrlObject = new URL(self.location.href); // 我的网站的域名的url对象
-  const myWebsiteDomain = myWebsiteUrlObject.origin; // 我的网站的域名
+  const webRequestUrlObject = new URL(event.request.url); // 用户请求的完整链接,这个链接可能encode也可能没有
+  const myWebsiteDomain = new URL(self.location.href).origin; // 我的网站的域名的域名（也就是我的代理网站）
   const prefix = `${myWebsiteDomain}/`;
   //正常情况下请求的链接应该是我的域名加上需要代理的完整的网址路径，如果请求的是我的代理网站的域名加上不带https域名的路径，说明需要使用上一次请求获得到的需要代理的域名加上去（请chatgpt帮我完成这部分）
-  // 假设用来存储上一次请求的完整域名的变量
   // 从 Cache 中获取 lastRequestedDomain
   const cache = await caches.open("full-proxy-cache");
   const cachedResponse = await cache.match("lastRequestedDomain");
   let lastRequestedDomain = cachedResponse ? await cachedResponse.text() : null;
   console.log("lastRequestedDomain:", lastRequestedDomain);
 
-  // 如果请求的路径不包含完整的 URL（不带 https 前缀）
-  if (!userRequestUrlObject.pathname.startsWith("http")) {
+  // 如果请求的路径不包含完整的 URL（不带 http 前缀）
+  if (!webRequestUrlObject.pathname.startsWith("http")) {
     // 检查是否有之前存储的域名信息
     if (lastRequestedDomain) {
-      const reconstructedTrueUrl = `${lastRequestedDomain}${userRequestUrlObject.pathname}${userRequestUrlObject.search}`;
+      const reconstructedTrueUrl = `${decodeURIComponent(lastRequestedDomain)}${
+        webRequestUrlObject.pathname
+      }${webRequestUrlObject.search}`;
       console.log(
         "Reconstructed URL using last requested domain:",
         reconstructedTrueUrl
       );
-      const reconstructedUrl = `${prefix}${reconstructedTrueUrl}`; //这里应该已经加密了
+      const reconstructedUrl = `${prefix}${encodeURIComponent(
+        reconstructedTrueUrl
+      )}`;
       const modifiedRequest = new Request(reconstructedUrl, {
         method: event.request.method,
         headers: event.request.headers,
@@ -53,11 +55,11 @@ self.addEventListener("fetch", async (event) => {
   }
   // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理
   if (
-    !userRequestUrlObject.href.startsWith(myWebsiteDomain) &&
+    !webRequestUrlObject.href.startsWith(myWebsiteDomain) &&
     !(
       (
-        userRequestUrlObject.protocol === "chrome-extension:" ||
-        userRequestUrlObject.protocol === "about:"
+        webRequestUrlObject.protocol === "chrome-extension:" ||
+        webRequestUrlObject.protocol === "about:"
       )
       //   requestUrl.href.includes("clarity") ||
       //   requestUrl.href.includes("analytics")
@@ -65,11 +67,11 @@ self.addEventListener("fetch", async (event) => {
   ) {
     // 检查是否为 script 文件
     if (
-      userRequestUrlObject.pathname.endsWith(".js") ||
-      userRequestUrlObject.pathname.endsWith(".mjs") ||
-      userRequestUrlObject.pathname.endsWith(".css")
+      webRequestUrlObject.pathname.endsWith(".js") ||
+      webRequestUrlObject.pathname.endsWith(".mjs") ||
+      webRequestUrlObject.pathname.endsWith(".css")
     ) {
-      console.log("Skipping proxy for script file:", userRequestUrlObject.href);
+      console.log("Skipping proxy for script file:", webRequestUrlObject.href);
       // 直接传递请求，不进行代理
       //   return fetch(event.request);
       return;
@@ -77,20 +79,14 @@ self.addEventListener("fetch", async (event) => {
 
     // 对 URL 进行编码，避免特殊字符引发的问题
     const modifiedUrl = `${prefix}${encodeURIComponent(
-      userRequestUrlObject.href
+      webRequestUrlObject.href
     )}`;
     console.log(
       "URl未被代理,已修改：modifiedUrl:",
       modifiedUrl,
       "原始originRequestUrl:",
-      userRequestUrlObject.href
-    );
-
-    const cache = await caches.open("full-proxy-cache");
-    await cache.put(
-      "lastRequestedDomain",
-      new Response(userRequestUrlObject.pathname)
-    );
+      webRequestUrlObject.href
+    )
     const modifiedRequestInit = {
       method: event.request.method,
       headers: event.request.headers,
@@ -113,32 +109,22 @@ self.addEventListener("fetch", async (event) => {
     const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
     return fetch(modifiedRequest);
   } else {
-    const actualUrlStr = decodeURIComponent(
-      userRequestUrlObject.pathname.replace("/", "") +
-        userRequestUrlObject.search +
-        userRequestUrlObject.hash
-    );
-    const actualUrlObject = new URL(actualUrlStr);
-    const cache = await caches.open("full-proxy-cache");
-    await cache.put(
-      "lastRequestedDomain",
-      new Response(actualUrlObject.pathname)
-    );
-    console.log("未代理：", userRequestUrlObject.href);
+    console.log("未修改,说明这个链接已经符合代理格式：", webRequestUrlObject.href);
+    getUrlOriginPutCache(webRequestUrlObject);
     return fetch(event.request);
   }
 });
 
-const getUrl = async (userRequestUrlObject) => {
+const getUrlOriginPutCache = async (webRequestUrlObject) => {
   const actualUrlStr = decodeURIComponent(
-    userRequestUrlObject.pathname.replace("/", "") +
-      userRequestUrlObject.search +
-      userRequestUrlObject.hash
+    webRequestUrlObject.pathname.replace("/", "") +
+      webRequestUrlObject.search +
+      webRequestUrlObject.hash
   );
   const actualUrlObject = new URL(actualUrlStr);
   const cache = await caches.open("full-proxy-cache");
   await cache.put(
     "lastRequestedDomain",
-    new Response(actualUrlObject.pathname)
+    new Response(encodeURIComponent(actualUrlObject.origin))
   );
 };
