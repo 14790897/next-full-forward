@@ -103,10 +103,10 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       const redirectUrl = redirectUrlObject.toString();
 
       // 如果重定向的 URL 与当前 URL origin相同，则跳出循环，避免无限重定向
-      if (
-        redirectUrlObject.origin.toString() ===
-        actualUrlObject.origin.toString()
-      ) {
+      // if (
+      //   redirectUrlObject.origin.toString() ===
+      //   actualUrlObject.origin.toString()
+      // ) {
         console.log("检测到循环重定向，停止重定向处理。");
         // 从重定向响应中删除 Location 头部，并将状态更改为 200 OK
         const modifiedHeaders = new Headers(response.headers);
@@ -116,18 +116,18 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
           status: 200, // 将状态码更改为 200 OK
           headers: modifiedHeaders,
         });
-      } else {
-        console.log(
-          "redirectUrl vs actualUrlObject.toString()",
-          redirectUrl,
-          actualUrlObject.toString()
-        );
-        console.log("即将正常重定向：", redirectUrl);
-        return NextResponse.redirect(
-          `${prefix}${encodeUrl(redirectUrl)}`,
-          response.status
-        );
-      }
+      // } else {
+      //   console.log(
+      //     "redirectUrl vs actualUrl",
+      //     redirectUrlObject.origin.toString(),
+      //     actualUrlObject.origin.toString()
+      //   );
+      //   console.log("即将正常重定向：", redirectUrl);
+      //   return NextResponse.redirect(
+      //     `${prefix}${encodeUrl(redirectUrl)}`,
+      //     response.status
+      //   );
+      // }
     }
 
     const baseUrl = `${prefix}${encodeUrl(actualUrlObject.origin)}`;

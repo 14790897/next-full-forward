@@ -1,28 +1,31 @@
 // components/RecaptchaButton.js
 "use client";
-
+//6LdQgi8qAAAAAOre8ZvVReRqnM9u0dim_DcVP3dU  6Lfh9i8qAAAAAHdMMpz3dJjLhmcsckckLeu8yTpj
 import Script from "next/script";
+import { useState } from "react";
 
 const RecaptchaButton = () => {
+  const recaptchaSiteKey = "6Lfh9i8qAAAAAHdMMpz3dJjLhmcsckckLeu8yTpj";
+  const recaptchaSrc = `https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`;
+  const [token, setToken] = useState("");
   const handleClick = async (e) => {
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute(
-        "6LdQgi8qAAAAAOre8ZvVReRqnM9u0dim_DcVP3dU",
-        { action: "LOGIN" }
+      setToken(
+        await grecaptcha.enterprise.execute(
+          recaptchaSiteKey,
+          { action: "LOGIN" }
+        )
       );
       console.log("reCAPTCHA token:", token);
-      // 这里你可以将 token 发送到后端进行验证
     });
   };
 
   return (
     <>
-      <Script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LdQgi8qAAAAAOre8ZvVReRqnM9u0dim_DcVP3dU"
-        strategy="afterInteractive"
-      />
+      <Script src={recaptchaSrc} strategy="afterInteractive" />
       <button onClick={handleClick}>Submit</button>
+      <textarea value={token} readOnly />
     </>
   );
 };
