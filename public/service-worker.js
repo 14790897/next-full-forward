@@ -1,6 +1,7 @@
 // public/service-worker.js
 // 网站的作用是通过我的网站域名加上需要代理的网址的完整链接，使得这个网址的流量全部经过我的网站给后端请求进行代理然后再返回给前端
-importScripts("../utils/url.js");
+// importScripts("/utils/url.js");
+
 
 self.addEventListener("install", (event) => {
   console.log("Service Worker installing...");
@@ -139,3 +140,10 @@ const getUrlOriginPutCache = async (webRequestUrlObject) => {
   );
   console.log("lastRequestedDomain put in cache:", actualUrlObject.origin);
 };
+
+ function encodeUrl(originalUrl) {
+   return originalUrl.replace(/:\/\//g, "__SLASH__");
+ }
+ function decodeUrl(encodedUrl) {
+   return encodedUrl.replace(/__SLASH__/g, "://");
+ }
