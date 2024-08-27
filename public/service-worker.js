@@ -1,5 +1,7 @@
 // public/service-worker.js
 // 网站的作用是通过我的网站域名加上需要代理的网址的完整链接，使得这个网址的流量全部经过我的网站给后端请求进行代理然后再返回给前端
+importScripts("../utils/url.js");
+
 self.addEventListener("install", (event) => {
   console.log("Service Worker installing...");
   self.skipWaiting();
@@ -35,14 +37,14 @@ self.addEventListener("fetch", async (event) => {
     if (!webRequestUrlObject.pathname.startsWith("/http")) {
       // 检查是否有之前存储的域名信息
       if (lastRequestedDomain) {
-        const reconstructedTrueUrl = `${decodeURIComponent(
+        const reconstructedTrueUrl = `${decodeUrl(
           lastRequestedDomain
         )}${webRequestUrlObject.pathname}${webRequestUrlObject.search}`;
         console.log(
           "Reconstructed URL using last requested domain:",
           reconstructedTrueUrl
         );
-        const reconstructedUrl = `${prefix}${encodeURIComponent(
+        const reconstructedUrl = `${prefix}${encodeUrl(
           reconstructedTrueUrl
         )}`;
         const modifiedRequest = new Request(reconstructedUrl, {
@@ -82,8 +84,7 @@ self.addEventListener("fetch", async (event) => {
         return;
       }
 
-      // 对 URL 进行编码，避免特殊字符引发的问题
-      const modifiedUrl = `${prefix}${encodeURIComponent(
+      const modifiedUrl = `${prefix}${encodeUrl(
         webRequestUrlObject.href
       )}`;
       console.log(
@@ -125,7 +126,7 @@ self.addEventListener("fetch", async (event) => {
 });
 
 const getUrlOriginPutCache = async (webRequestUrlObject) => {
-  const actualUrlStr = decodeURIComponent(
+  const actualUrlStr = decodeUrl(
     webRequestUrlObject.pathname.replace("/", "") +
       webRequestUrlObject.search +
       webRequestUrlObject.hash
@@ -134,7 +135,7 @@ const getUrlOriginPutCache = async (webRequestUrlObject) => {
   const cache = await caches.open("full-proxy-cache");
   await cache.put(
     "lastRequestedDomain",
-    new Response(encodeURIComponent(actualUrlObject.origin))
+    new Response(encodeUrl(actualUrlObject.origin))
   );
   console.log("lastRequestedDomain put in cache:", actualUrlObject.origin);
 };

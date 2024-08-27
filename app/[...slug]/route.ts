@@ -1,6 +1,7 @@
 // app/proxy
 export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
+import { decodeUrl, encodeUrl } from "@/utils/url";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   console.log("GET request");
@@ -37,13 +38,13 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
         if (cookieObj.current_site) {
           // 解码 URL
           actualUrlStr =
-            decodeURIComponent(cookieObj.current_site) +
+            decodeUrl(cookieObj.current_site) +
             requestUrlObject.pathname +
             requestUrlObject.search +
             requestUrlObject.hash;
           console.log("Actual URL from cookie:", actualUrlStr);
           const actualUrlObject = new URL(actualUrlStr);
-          const redirectUrl = `${prefix}${encodeURIComponent(
+          const redirectUrl = `${prefix}${encodeUrl(
             actualUrlObject.toString()
           )}`;
           console.log("redirectUrl in cookie:", redirectUrl);
@@ -68,7 +69,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       }
     } else {
       // 解码 URL
-      actualUrlStr = decodeURIComponent(
+      actualUrlStr = decodeUrl(
         requestUrlObject.pathname.replace("/", "") +
           requestUrlObject.search +
           requestUrlObject.hash
@@ -100,12 +101,12 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       const location = response.headers.get("Location")!;
       const redirectUrl = new URL(location, actualUrlObject).toString();
       return NextResponse.redirect(
-        `${prefix}${encodeURIComponent(redirectUrl)}`,
+        `${prefix}${encodeUrl(redirectUrl)}`,
         response.status
       );
     }
 
-    const baseUrl = `${prefix}${encodeURIComponent(actualUrlObject.origin)}`;
+    const baseUrl = `${prefix}${encodeUrl(actualUrlObject.origin)}`;
     if (response.headers.get("Content-Type")?.includes("text/html")) {
       response = await updateRelativeUrls(response, baseUrl, prefix);
     }
@@ -114,7 +115,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
       headers: response.headers,
     });
     modifiedResponse.headers.set("Access-Control-Allow-Origin", "*");
-    const currentSiteCookie = `current_site=${encodeURIComponent(
+    const currentSiteCookie = `current_site=${encodeUrl(
       actualUrlObject.origin
     )}; Path=/; Secure`;
     modifiedResponse.headers.append("Set-Cookie", currentSiteCookie);
