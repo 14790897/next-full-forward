@@ -21,6 +21,7 @@ self.addEventListener("fetch", async (event) => {
   const cache = await caches.open("full-proxy-cache");
   const cachedResponse = await cache.match("lastRequestedDomain");
   let lastRequestedDomain = cachedResponse ? await cachedResponse.text() : null;
+  console.log("lastRequestedDomain:", lastRequestedDomain);
 
   // 如果请求的路径不包含完整的 URL（不带 https 前缀）
   if (!userRequestUrlObject.pathname.startsWith("http")) {
@@ -31,9 +32,7 @@ self.addEventListener("fetch", async (event) => {
         "Reconstructed URL using last requested domain:",
         reconstructedTrueUrl
       );
-      const reconstructedUrl = `${prefix}${encodeURIComponent(
-        reconstructedTrueUrl
-      )}`;
+      const reconstructedUrl = `${prefix}${reconstructedTrueUrl}`; //这里应该已经加密了
       const modifiedRequest = new Request(reconstructedUrl, {
         method: event.request.method,
         headers: event.request.headers,
@@ -77,23 +76,20 @@ self.addEventListener("fetch", async (event) => {
     }
 
     // 对 URL 进行编码，避免特殊字符引发的问题
-    const modifiedUrl = `${prefix}${encodeURIComponent(userRequestUrlObject.href)}`;
+    const modifiedUrl = `${prefix}${encodeURIComponent(
+      userRequestUrlObject.href
+    )}`;
     console.log(
       "URl未被代理,已修改：modifiedUrl:",
       modifiedUrl,
       "原始originRequestUrl:",
       userRequestUrlObject.href
     );
-	const actualUrlStr = decodeURIComponent(
-    userRequestUrlObject.pathname.replace("/", "") +
-      userRequestUrlObject.search +
-      userRequestUrlObject.hash
-  );
-	const actualUrlObject = new URL(actualUrlStr);
+
     const cache = await caches.open("full-proxy-cache");
     await cache.put(
       "lastRequestedDomain",
-      new Response(actualUrlObject.pathname)
+      new Response(userRequestUrlObject.pathname)
     );
     const modifiedRequestInit = {
       method: event.request.method,
@@ -117,7 +113,32 @@ self.addEventListener("fetch", async (event) => {
     const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
     return fetch(modifiedRequest);
   } else {
+    const actualUrlStr = decodeURIComponent(
+      userRequestUrlObject.pathname.replace("/", "") +
+        userRequestUrlObject.search +
+        userRequestUrlObject.hash
+    );
+    const actualUrlObject = new URL(actualUrlStr);
+    const cache = await caches.open("full-proxy-cache");
+    await cache.put(
+      "lastRequestedDomain",
+      new Response(actualUrlObject.pathname)
+    );
     console.log("未代理：", userRequestUrlObject.href);
     return fetch(event.request);
   }
 });
+
+const getUrl = async (userRequestUrlObject) => {
+  const actualUrlStr = decodeURIComponent(
+    userRequestUrlObject.pathname.replace("/", "") +
+      userRequestUrlObject.search +
+      userRequestUrlObject.hash
+  );
+  const actualUrlObject = new URL(actualUrlStr);
+  const cache = await caches.open("full-proxy-cache");
+  await cache.put(
+    "lastRequestedDomain",
+    new Response(actualUrlObject.pathname)
+  );
+};
