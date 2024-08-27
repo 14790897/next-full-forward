@@ -19,8 +19,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-gray-100 to-gray-200">
-      <div className="max-w-xl w-full">
+    <div className="flex flex-col items-center justify-center  bg-gradient-to-r from-gray-100 to-gray-200">
+      <div className=" w-full">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">
           输入您想访问的网址
         </h1>
@@ -52,7 +52,7 @@ export default function HomePage() {
               {history.map((item, index) => (
                 <li
                   key={index}
-                  className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                  className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center"
                 >
                   <a
                     href="#"
