@@ -31,8 +31,8 @@ self.addEventListener("fetch", async (event) => {
       : null;
     console.log("lastRequestedDomain:", lastRequestedDomain);
 
-    // 如果请求的路径不包含完整的 URL（不带 http 前缀）
-    if (!webRequestUrlObject.pathname.startsWith("http")) {
+    // 如果请求的路径不包含完整的 URL（不带 /http 前缀）
+    if (!webRequestUrlObject.pathname.startsWith("/http")) {
       // 检查是否有之前存储的域名信息
       if (lastRequestedDomain) {
         const reconstructedTrueUrl = `${decodeURIComponent(
@@ -66,7 +66,7 @@ self.addEventListener("fetch", async (event) => {
       }
     }
     // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理
-    if (!webRequestUrlObject.href.startsWith(myWebsiteDomain)) {
+    else if (!webRequestUrlObject.href.startsWith(myWebsiteDomain)) {
       // 检查是否为 script 文件
       if (
         webRequestUrlObject.pathname.endsWith(".js") ||
@@ -136,4 +136,5 @@ const getUrlOriginPutCache = async (webRequestUrlObject) => {
     "lastRequestedDomain",
     new Response(encodeURIComponent(actualUrlObject.origin))
   );
+  console.log("lastRequestedDomain put in cache:", actualUrlObject.origin);
 };
