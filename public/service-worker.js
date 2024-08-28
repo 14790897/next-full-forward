@@ -69,20 +69,7 @@ self.addEventListener("fetch", async (event) => {
     }
     // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理
     else if (!webRequestUrlObject.href.startsWith(myWebsiteDomain)) {
-      // 检查是否为 script 文件
-      // if (
-      //   webRequestUrlObject.pathname.endsWith(".js") ||
-      //   webRequestUrlObject.pathname.endsWith(".mjs") ||
-      //   webRequestUrlObject.pathname.endsWith(".css")
-      // ) {
-      //   console.log(
-      //     "Skipping proxy for script file:",
-      //     webRequestUrlObject.href
-      //   );
-      //   // 直接传递请求，不进行代理
-      //   //   return fetch(event.request);
-      //   return;
-      // }
+
 
       const modifiedUrl = `${prefix}${encodeUrl(webRequestUrlObject.href)}`;
       console.log(
