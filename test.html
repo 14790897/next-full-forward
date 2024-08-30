@@ -18,7 +18,7 @@
       document.getElementById("originalHref").innerText =
         "Original Href: " + window.location.href;
 
-      // Create a proxy for window.location to fake the href value
+      // Create a proxy for window.location to fake the href value 这个并不能拦截href
       const locationProxy = new Proxy(window.location, {
         get(target, prop) {
           if (prop === "href") {

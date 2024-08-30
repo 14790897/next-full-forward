@@ -19,12 +19,7 @@ async function handleRequest(request: NextRequest): Promise<NextResponse> {
     const prefix = `${requestUrlObject.origin}/`;
     let actualUrlStr: string;
 
-    if (
-      !(
-        requestUrlObject.pathname.startsWith("/http") ||
-        requestUrlObject.pathname.startsWith("/https")
-      )
-    ) {
+    if (!requestUrlObject.pathname.startsWith("/http")) {
       // 从Cookie中读取之前访问的网站
       console.log(`路径未找到完整链接，进入cookie`);
       const cookie = request.headers.get("cookie");

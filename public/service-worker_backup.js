@@ -2,6 +2,7 @@
 // 网站的作用是通过我的网站域名加上需要代理的网址的完整链接，使得这个网址的流量全部经过我的网站给后端请求进行代理然后再返回给前端
 // importScripts("/utils/url.js");
 
+
 self.addEventListener("install", (event) => {
   console.log("Service Worker installing...");
   self.skipWaiting();
@@ -34,12 +35,8 @@ self.addEventListener("fetch", async (event) => {
       : null;
     console.log("lastRequestedDomain:", lastRequestedDomain);
 
-    // 如果请求的路径不包含完整的 URL（不带 /http 前缀）,同时它是以我的网站的域名开头
-    // 如果它是以别的网站域名为开头的话那么直接加上我的网站域名就行了,见第二个if
-    if (
-      !webRequestUrlObject.pathname.startsWith("/http") &&
-      webRequestUrlObject.href.startsWith(myWebsiteDomain)
-    ) {
+    // 如果请求的路径不包含完整的 URL（不带 /http 前缀）
+    if (!webRequestUrlObject.pathname.startsWith("/http")) {
       // 检查是否有之前存储的域名信息
       if (lastRequestedDomain) {
         const reconstructedTrueUrl = `${decodeUrl(lastRequestedDomain)}${
@@ -50,20 +47,30 @@ self.addEventListener("fetch", async (event) => {
           reconstructedTrueUrl
         );
         const reconstructedUrl = `${prefix}${encodeUrl(reconstructedTrueUrl)}`;
-
-        const redirectUrl = new URL(reconstructedUrl);
-        const redirectResponse = Response.redirect(redirectUrl, 302);
-        event.respondWith(redirectResponse);
-        return;
+        const modifiedRequest = new Request(reconstructedUrl, {
+          method: event.request.method,
+          headers: event.request.headers,
+          body: event.request.body,
+          mode: "same-origin",
+          credentials: event.request.credentials,
+          cache: event.request.cache,
+          redirect: event.request.redirect,
+          referrer: event.request.referrer,
+          integrity: event.request.integrity,
+        });
+        return fetch(modifiedRequest);
       } else {
         console.log(
           `No last requested domain available. webRequestUrlObject: ${webRequestUrlObject.href}`
         );
+        //   return fetch(event.request);
         return;
       }
     }
-    // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理, 同时我认为这个不是主要的网页所以不将它加入域名的缓存中
-    if (!webRequestUrlObject.href.startsWith(myWebsiteDomain)) {
+    // 如果请求的域名不以myWebsiteDomain开头，说明他请求了外部的服务同时那个服务是一个完整的链接，则加上前缀，使得可以代理
+    else if (!webRequestUrlObject.href.startsWith(myWebsiteDomain)) {
+
+
       const modifiedUrl = `${prefix}${encodeUrl(webRequestUrlObject.href)}`;
       console.log(
         "URl未被代理,已修改：modifiedUrl:",
@@ -71,18 +78,34 @@ self.addEventListener("fetch", async (event) => {
         "原始originRequestUrl:",
         webRequestUrlObject.href
       );
+      const modifiedRequestInit = {
+        method: event.request.method,
+        headers: event.request.headers,
+        body: event.request.body,
+        mode: "same-origin",
+        credentials: event.request.credentials,
+        cache: event.request.cache,
+        redirect: event.request.redirect,
+        referrer: event.request.referrer,
+        integrity: event.request.integrity,
+        duplex: event.request.body ? "half" : undefined, // 如果有 body，设置 duplex: 'half'
+      };
       // 这里重定向到新的 URL，暂时不使用
-      const redirectUrl = new URL(modifiedUrl);
-      const redirectResponse = Response.redirect(redirectUrl, 302);
-      event.respondWith(redirectResponse);
-      return;
+      // const redirectUrl = new URL(modifiedUrl);
+      // const redirectResponse = Response.redirect(redirectUrl, 302);
+      // event.respondWith(redirectResponse);
+      // 更新存储的上次请求域名
+      // 将 lastRequestedDomain 存储到 Cache 中
+
+      const modifiedRequest = new Request(modifiedUrl, modifiedRequestInit);
+      return fetch(modifiedRequest);
     } else {
       console.log(
         "未修改,说明这个链接已经符合代理格式：",
         webRequestUrlObject.href
       );
       getUrlOriginPutCache(webRequestUrlObject);
-      return;
+      return fetch(event.request);
     }
   }
 });
@@ -102,9 +125,9 @@ const getUrlOriginPutCache = async (webRequestUrlObject) => {
   console.log("lastRequestedDomain put in cache:", actualUrlObject.origin);
 };
 
-function encodeUrl(originalUrl) {
-  return originalUrl.replace(/:\/\//g, "__SLASH__");
-}
-function decodeUrl(encodedUrl) {
-  return encodedUrl.replace(/__SLASH__/g, "://");
-}
+ function encodeUrl(originalUrl) {
+   return originalUrl.replace(/:\/\//g, "__SLASH__");
+ }
+ function decodeUrl(encodedUrl) {
+   return encodedUrl.replace(/__SLASH__/g, "://");
+ }
